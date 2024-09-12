@@ -1,0 +1,657 @@
+<head>
+	<title>Welda Attack!</title>
+	<meta charset="UTF-8">
+</head>
+<body>
+<br>
+<canvas id="myCanvas" width="500" height="500" style="border:1px solid #cccccc;"></canvas>
+
+<script type="text/javascript">
+
+//Alfonso Flores Valadez
+//Assignment7
+//4/26/2023
+//the purpose of this program is to implement a zelda-like game in javascript using our original java based game as a guide.
+
+class Sprite
+{
+	constructor(x1, y1, w1, h1, image_url)
+	{
+
+		this.x = x1;
+		this.y = y1;
+		this.w = w1;
+		this.h = h1;
+		this.leftSide = this.x;
+		this.rightSide = this.x + this.w;
+		this.top = this.y;
+		this.bottom = this.y + this.h;
+		this.roomXPos = 0;
+		this.roomYPos = 0;
+		this.isValid = true;
+
+
+		this.image = new Image();
+		this.image.src = image_url;
+	}
+	
+
+}
+
+class Pot extends Sprite{
+	constructor(x, y, w, h, image_url)
+	{
+		super(x, y, w, h, image_url);
+		this.speed = 7;
+		this.xDirection = 0;
+		this.yDirection = 0;
+		this.isValid = true;
+		this.isBroken = false;
+		this.counter = 0;
+		this.potImg = new Image();
+		this.brokenPotImg = new Image();
+		this.potImg.src = "pot.png";
+		this.brokenPotImg.src = "brokenPot.png";
+	}
+	update() //sit_still
+	{
+			this.setPrevPos();
+      this.x += this.xDirection * this.speed;
+      this.y += this.yDirection*this.speed; 
+      
+    	this.leftSide = this.x;
+      this.rightSide = this.x + this.w;
+      this.top = this.y;
+      this.bottom = this.y + this.h;
+
+			
+		
+			if(this.isValid)
+			{
+			 	if(this.isBroken)
+			 	{
+			 		this.image = this.brokenPotImg;
+			 		this.counter++;
+			 	}
+			}
+
+			if (this.counter > 40)
+			{
+				this.isValid = false;
+			}
+
+
+  }
+
+	getOut(sprite)
+  {
+    //up
+    if(this.y + this.h >= sprite.y && this.prevY + this.h <= sprite.y)
+    {
+      this.y = sprite.y - this.h;
+    }
+    //down
+    if(this.y <= sprite.y + sprite.h && this.prevY >= sprite.y + sprite.h){
+      this.y = sprite.y + sprite.h;
+    }
+    //right
+    if(this.x + this.w >= sprite.x && this.prevX + this.w <= sprite.x){
+      this.x = sprite.x - this.w;
+    }
+    //left
+    if(this.x <= sprite.x + sprite.w && this.prevX >= sprite.x + sprite.w){
+      this.x = sprite.x + sprite.w;
+    }
+  }
+
+	setPrevPos()
+	{
+		this.prevX = this.x;
+		this.prevY = this.y; 
+	}
+}
+
+
+class Boomerang extends Sprite
+{
+	constructor(x, y, w, h, image_url)
+	{
+		super(x, y, w, h, image_url);
+		this.xDirection = 0;
+		this.yDirection = 0;
+		this.speed = 10;
+	}
+	update()
+	{
+			//updates boomerang direction
+      this.x += this.xDirection * this.speed;
+      this.y += this.yDirection*this.speed;
+   
+			//updates boomerang properties according to new position
+    	this.leftSide = this.x;
+      this.rightSide = this.x + this.w;
+      this.top = this.y;
+      this.bottom = this.y + this.h;
+  }
+
+}
+
+class Tile extends Sprite
+{
+	constructor(x, y, w, h, image_url)
+	{
+		super(x, y, w, h, image_url);
+
+	}
+	
+	update() 
+	{
+		//Don't have to udate tile because it does not do anything and there are no edit capabilities in this program
+	}
+
+}
+
+class Link extends Sprite
+{
+	constructor(x, y, w, h, image_url)
+	{
+		super(x, y, w, h, image_url);
+		this.speed = 9;
+		this.imageNumb = 0;
+	  let isMovingRight = false;
+		let isMovingLeft = false;
+		let isMovingUp = false;
+		let isMovingDown = false;
+	
+		//variables to know in which direction link is facing for shooting boomerangs
+		let isFacingRight = false;
+		let isFacingLeft = false;
+		let isFacingUp = false;
+		let isFacingDown = false;
+
+		//arrays hodling different animations for different directions for link
+		this.linkRight = [];
+		this.linkLeft = [];
+		this.linkUp = [];
+		this.linkDown = [];
+		this.imageNames = ["link0.png", "link1.png", "link2.png", "link3.png", "link4.png", "link5.png", "link6.png", "link7.png", "link8.png", "link9.png", "link10.png", "link11.png", "link12.png", "link13.png", "link14.png", "link15.png", "link16.png", "link17.png", "link18.png", "link19.png", "link20.png", "link21.png", "link22.png", "link23.png", "link24.png","link25.png", "link26.png", "link27.png", "link28.png", "link29.png", "link30.png", "link31.png", "link32.png", "link33.png", "link34.png", "link35.png", "link36.png", "link37.png", "link38.png", "link39.png", "link40.png", "link41.png", "link42.png", "link43.png", "link44.png", "link45.png", "link46.png", "link47.png", "link48.png"];
+
+		//loading above images into corresponding arrays
+		for(let i = 0; i < 49; i++)
+		{
+			let img = new Image();
+			img.src = this.imageNames[i];
+			if(i < 13)
+			{
+				this.linkDown.push(img); 
+			}
+			if(i >=13 && i <= 24)
+			{
+				this.linkLeft.push(img);
+			}
+			if( i >= 25 && i <= 37)
+			{
+				this.linkRight.push(img);
+			}
+			if( i >= 38 && i <= 48)
+			{
+				this.linkUp.push(img);
+			}
+		}
+
+	}
+
+	update()
+	{
+		this.top = this.y;
+    this.bottom = this.y + this.h;
+    this.rightSide = this.x + this.w;
+    this.leftSide = this.x;
+		
+		if(this.isMovingRight)
+	 	{
+
+			//Restarts iteration over array with images
+			if(this.imageNumb >= this.linkRight.length)
+			{
+				this.imageNumb = 0;
+			}
+
+			//Loads images
+		 	this.image = this.linkRight[this.imageNumb];
+
+			//Sets variables for next take on this branch
+			this.imageNumb++;
+			this.isMovingRight = false;
+
+			this.isFacingRight = true;
+			this.isFacingLeft = false;
+		  this.isFacingUp = false;
+			this.isFacingDown = false;
+		}
+		if(this.isMovingLeft)
+		{	
+
+			if(this.imageNumb >= this.linkLeft.length)
+			{
+				this.imageNumb = 0;
+			}
+
+			this.image = this.linkLeft[this.imageNumb];
+
+			this.imageNumb++;
+			this.isMovingLeft = false;
+
+			this.isFacingRight = false;
+			this.isFacingLeft = true;
+		  this.isFacingUp = false;
+			this.isFacingDown = false;
+		}
+		if(this.isMovingDown)
+		{
+
+			if(this.imageNumb >= this.linkDown.length)
+			{
+				this.imageNumb = 0;
+			}
+
+			this.image = this.linkDown[this.imageNumb];
+			this.imageNumb++;
+			this.isMovingDown = false;
+
+			this.isFacingRight = false;
+			this.isFacingLeft = false;
+		  this.isFacingUp = false;
+			this.isFacingDown = true;
+		}
+		if(this.isMovingUp)
+		{
+			if(this.imageNumb >= this.linkUp.length)
+			{
+				this.imageNumb = 0;
+			}
+
+			this.image = this.linkUp[this.imageNumb];
+			this.imageNumb++;
+
+			this.isMovingUp = false;
+
+			this.isFacingRight = false;
+			this.isFacingLeft = false;
+		  this.isFacingUp = true;
+			this.isFacingDown = false;
+		}
+		
+		//console.log(this.isMovingRight);
+
+	}
+
+	setPrevPos()
+	{
+		this.prevX = this.x;
+		this.prevY = this.y; 
+	}
+
+	getOut(sprite)
+  {
+    //up
+    if(this.y + this.h >= sprite.y && this.prevY + this.h <= sprite.y)
+    {
+      this.y = sprite.y - this.h;
+    }
+    //down
+    if(this.y <= sprite.y + sprite.h && this.prevY >= sprite.y + sprite.h){
+      this.y = sprite.y + sprite.h;
+    }
+    //right
+    if(this.x + this.w >= sprite.x && this.prevX + this.w <= sprite.x){
+      this.x = sprite.x - this.w;
+    }
+    //left
+    if(this.x <= sprite.x + sprite.w && this.prevX >= sprite.x + sprite.w){
+      this.x = sprite.x + sprite.w;
+    }
+  }
+
+	onclick(x, y)
+	{
+		this.dest_x = x;
+		this.dest_y = y;
+	}
+}
+
+class Model
+{
+	constructor(map)
+	{
+		this.sprites = [];
+		//unmarshalling
+	  var tiles = map["tiles"]
+		var pots = map["pots"]
+		for(let i = 0; i < tiles.length; i++)
+		{
+			// var x = tiles[i]["x_pos"];
+			// var y = tiles[i]["y_pos"];
+			this.sprites.push(new Tile(tiles[i]["x_pos"], tiles[i]["y_pos"], 50, 50, "tile.png"));
+		}
+		for(let i = 0; i < pots.length; i++)
+		{
+			this.sprites.push(new Pot(pots[i]["x_pos"], pots[i]["y_pos"], 40, 40, "pot.png"));
+		}
+		this.link = new Link(300, 100, 75, 85, "link0.png");
+		this.sprites.push(this.link);
+	}
+
+	shootBoomerang()
+	{
+		//facing right
+		if(this.link.isFacingRight)
+		{
+			this.boomerang = new Boomerang(this.link.rightSide, this.link.top + (this.link.h/2), 10, 10, "boomerang0.png" );
+			this.boomerang.xDirection = 1;
+			this.sprites.push(this.boomerang);
+			this.boomerangShot = true;
+		}
+
+		//facing left
+		if(this.link.isFacingLeft)
+		{
+			this.boomerang = new Boomerang(this.link.leftSide, this.link.top + (this.link.h/2), 10, 10, "boomerang2.png" );
+			this.boomerang.xDirection = -1;
+			this.sprites.push(this.boomerang);
+			this.boomerangShot = true;
+		}
+
+		//facing down
+		if(this.link.isFacingDown)
+		{
+			this.boomerang = new Boomerang(this.link.leftSide + (this.link.w/2), this.link.bottom , 10, 10, "boomerang1.png" );
+			this.boomerang.yDirection = 1;
+			this.sprites.push(this.boomerang);
+			this.boomerangShot = true;
+		}
+
+		// //facing up
+		if(this.link.isFacingUp)
+		{
+			this.boomerang = new Boomerang(this.link.rightSide - (this.link.w/2), this.link.top , 10, 10, "boomerang3.png" );
+			this.boomerang.yDirection = -1;
+			this.sprites.push(this.boomerang);
+			this.boomerangShot = true;
+		}
+
+	}
+
+	movePot(sprite)
+	{
+		//facing right
+		if(this.link.isFacingRight)
+		{
+			sprite.xDirection = 1;
+		}
+
+		// //facing left
+		if(this.link.isFacingLeft)
+		{
+		 	sprite.xDirection = -1;
+		}
+
+		//facing down
+		if(this.link.isFacingDown)
+		{
+			sprite.yDirection = 1;
+		}
+
+		//facing up
+		if(this.link.isFacingUp)
+		{
+			sprite.yDirection = -1;
+		}
+	}
+
+	update()
+	{
+		for(var i = 0; i < this.sprites.length; i++)
+		{
+			this.sprites[i].update();
+			let sprite = this.sprites[i];
+			if(sprite.isValid != true)
+			{
+			  	this.sprites.splice(i,1);
+			  	continue;
+		  }
+			
+			//if tile, don't check collision detection
+			if(sprite instanceof Tile)
+				continue;
+
+			for(let j = 0; j < this.sprites.length; j++)
+			{
+				
+				let sprite2 = this.sprites[j];
+
+				if(sprite instanceof Link && sprite2 instanceof Tile)
+				{
+
+					if (this.isColliding(sprite, sprite2))
+					{
+						sprite.getOut(sprite2);
+					}
+				}
+				if(sprite instanceof Link && sprite2 instanceof Pot)
+				{
+					if(this.isColliding(sprite, sprite2))
+					{
+
+						if(!(sprite2.isBroken))
+						{
+							sprite.getOut(sprite2);
+							this.movePot(sprite2);
+						}
+						
+					}
+				}
+				if(sprite instanceof Boomerang && sprite2 instanceof Tile)
+				{
+					if (this.isColliding(sprite, sprite2))
+					{
+						sprite.isValid = false;
+					}
+				}
+				if(sprite instanceof Boomerang && sprite2 instanceof Pot)
+				{
+					if(this.isColliding(sprite, sprite2))
+					{
+						console.log("collision");
+						sprite.isValid = false;
+						sprite2.isBroken = true;
+					}
+				}
+				if(sprite instanceof Pot && sprite2 instanceof Tile)
+				{
+					if(this.isColliding(sprite, sprite2))
+					{
+						console.log("collision");
+						sprite.getOut(sprite2);
+						sprite.isBroken = true;						
+					}
+				}
+			}
+		}
+	
+	}
+
+	
+
+	isColliding(sprite1, sprite2)
+	{
+			//left lower corner of link is touching a tile
+			//console.log(sprite2.rightSide);
+			if(sprite1.rightSide > sprite2.leftSide && sprite1.leftSide < sprite2.rightSide && sprite1.top < sprite2.bottom && sprite1.bottom > sprite2.top)
+			{
+				return true;
+			}
+
+			//right lower corner of link is touching a tile	
+			if(sprite1.leftSide < sprite2.rightSide && sprite1.rightSide > sprite2.leftSide && sprite1.top < sprite2.bottom && sprite1.bottom > sprite2.top)
+			{	
+				return true; 
+			}
+
+			//right lower corner of link is touching a tile
+			if(sprite1.top < sprite2.bottom && sprite1.bottom > sprite2.top && sprite1.rightSide > sprite2.leftSide && sprite1.leftSide < sprite2.rightSide)
+			{
+				return true; 
+			}
+
+			//right upper corner of link is touching a tile
+		 	if( sprite1.bottom > sprite2.top && sprite1.top < sprite2.bottom && sprite1.rightSide > sprite2.leftSide && sprite1.leftSide < sprite2.rightSide )
+			{
+			 	return true;
+			}	
+
+			return false;
+	}
+
+}
+  
+class View
+{
+	constructor(model)
+	{
+		this.model = model;
+		this.canvas = document.getElementById("myCanvas");
+		this.roomXPos = 0;
+		this.roomYPos = 0;
+	}
+
+	update()
+	{
+		let ctx = this.canvas.getContext("2d");
+		ctx.clearRect(0, 0, 500, 500);
+		for(let i = 0; i < this.model.sprites.length; i++)
+		{
+			let sprite = this.model.sprites[i];
+			// sprite.roomXPos = this.roomXPos;
+			// sprite.roomYPos = this.roomYPos;
+
+			ctx.drawImage(sprite.image, sprite.x - this.roomXPos, sprite.y - this.roomYPos);
+		}
+	}
+}
+
+class Controller
+{
+	constructor(model, view)
+	{
+		this.model = model;
+		this.view = view;
+		this.key_right = false;
+		this.key_left = false;
+		this.key_up = false;
+		this.key_down = false;
+		this.key_ctrl = false;
+		let self = this;
+		view.canvas.addEventListener("click", function(event) { self.onClick(event); });
+		document.addEventListener('keydown', function(event) { self.keyDown(event); }, false);
+		document.addEventListener('keyup', function(event) { self.keyUp(event); }, false);
+	}
+
+	// onClick(event)
+	// {
+	// 	this.model.onClick(event.pageX - this.view.canvas.offsetLeft, event.pageY - this.view.canvas.offsetTop);
+	// }
+
+	keyDown(event)
+	{
+		if(event.keyCode == 39) this.key_right = true;
+		else if(event.keyCode == 37) this.key_left = true;
+		else if(event.keyCode == 38) this.key_up = true;
+		else if(event.keyCode == 40) this.key_down = true;
+		else if(event.keyCode == 17) this.key_ctrl = true;
+	}
+
+	keyUp(event)
+	{
+		if(event.keyCode == 39) this.key_right = false;
+		else if(event.keyCode == 37) this.key_left = false;
+		else if(event.keyCode == 38) this.key_up = false;
+		else if(event.keyCode == 40) this.key_down = false;
+		else if(event.keyCode == 17) this.key_ctrl = false;
+	}
+
+	update()
+	{
+		
+		this.model.link.setPrevPos();
+		if(this.key_right) 
+		{	
+			this.model.link.isMovingRight = true;
+			this.model.link.x += this.model.link.speed;
+			if(this.model.link.x > 500)
+			{
+				this.view.roomXPos = 500;
+			}
+		}
+		if(this.key_left)
+		{
+			this.model.link.isMovingLeft = true;
+			this.model.link.x -= this.model.link.speed;
+			if(this.model.link.x < 500)
+			{
+				this.view.roomXPos = 0;
+			}
+		}
+		if(this.key_up) 
+		{
+			this.model.link.isMovingUp = true;
+			this.model.link.y -= this.model.link.speed;
+			if(this.model.link.y < 500)
+			{
+				this.view.roomYPos = 0;
+			}
+		}
+		if(this.key_down)
+		{
+			this.model.link.isMovingDown = true;
+			this.model.link.y += this.model.link.speed;
+			if(this.model.link.y > 500)
+			{
+				this.view.roomYPos = 500;
+			}
+		}
+		if(this.key_ctrl)
+		{
+			this.model.shootBoomerang();
+			this.key_ctrl = false;	
+		}
+	}
+}
+
+class Game
+{
+	constructor()
+	{
+		var map = {
+			"tiles":[{"x_pos":0,"y_pos":0,"width":50,"height":50},{"x_pos":0,"y_pos":50,"width":50,"height":50},{"x_pos":0,"y_pos":150,"width":50,"height":50},{"x_pos":0,"y_pos":100,"width":50,"height":50},{"x_pos":0,"y_pos":200,"width":50,"height":50},{"x_pos":0,"y_pos":250,"width":50,"height":50},{"x_pos":0,"y_pos":300,"width":50,"height":50},{"x_pos":0,"y_pos":350,"width":50,"height":50},{"x_pos":0,"y_pos":400,"width":50,"height":50},{"x_pos":0,"y_pos":450,"width":50,"height":50},{"x_pos":50,"y_pos":450,"width":50,"height":50},{"x_pos":100,"y_pos":450,"width":50,"height":50},{"x_pos":150,"y_pos":450,"width":50,"height":50},{"x_pos":200,"y_pos":450,"width":50,"height":50},{"x_pos":350,"y_pos":450,"width":50,"height":50},{"x_pos":400,"y_pos":450,"width":50,"height":50},{"x_pos":450,"y_pos":450,"width":50,"height":50},{"x_pos":450,"y_pos":400,"width":50,"height":50},{"x_pos":450,"y_pos":350,"width":50,"height":50},{"x_pos":450,"y_pos":300,"width":50,"height":50},{"x_pos":450,"y_pos":150,"width":50,"height":50},{"x_pos":450,"y_pos":100,"width":50,"height":50},{"x_pos":450,"y_pos":50,"width":50,"height":50},{"x_pos":450,"y_pos":0,"width":50,"height":50},{"x_pos":400,"y_pos":0,"width":50,"height":50},{"x_pos":350,"y_pos":0,"width":50,"height":50},{"x_pos":300,"y_pos":0,"width":50,"height":50},{"x_pos":50,"y_pos":0,"width":50,"height":50},{"x_pos":100,"y_pos":0,"width":50,"height":50},{"x_pos":150,"y_pos":0,"width":50,"height":50},{"x_pos":50,"y_pos":150,"width":50,"height":50},{"x_pos":100,"y_pos":150,"width":50,"height":50},{"x_pos":200,"y_pos":150,"width":50,"height":50},{"x_pos":150,"y_pos":150,"width":50,"height":50},{"x_pos":200,"y_pos":200,"width":50,"height":50},{"x_pos":200,"y_pos":250,"width":50,"height":50},{"x_pos":500,"y_pos":350,"width":50,"height":50},{"x_pos":500,"y_pos":300,"width":50,"height":50},{"x_pos":500,"y_pos":150,"width":50,"height":50},{"x_pos":500,"y_pos":100,"width":50,"height":50},{"x_pos":500,"y_pos":50,"width":50,"height":50},{"x_pos":500,"y_pos":0,"width":50,"height":50},{"x_pos":550,"y_pos":0,"width":50,"height":50},{"x_pos":600,"y_pos":0,"width":50,"height":50},{"x_pos":650,"y_pos":0,"width":50,"height":50},{"x_pos":700,"y_pos":0,"width":50,"height":50},{"x_pos":950,"y_pos":0,"width":50,"height":50},{"x_pos":900,"y_pos":0,"width":50,"height":50},{"x_pos":850,"y_pos":0,"width":50,"height":50},{"x_pos":950,"y_pos":50,"width":50,"height":50},{"x_pos":950,"y_pos":150,"width":50,"height":50},{"x_pos":950,"y_pos":100,"width":50,"height":50},{"x_pos":950,"y_pos":200,"width":50,"height":50},{"x_pos":950,"y_pos":300,"width":50,"height":50},{"x_pos":950,"y_pos":350,"width":50,"height":50},{"x_pos":950,"y_pos":400,"width":50,"height":50},{"x_pos":950,"y_pos":250,"width":50,"height":50},{"x_pos":950,"y_pos":450,"width":50,"height":50},{"x_pos":900,"y_pos":450,"width":50,"height":50},{"x_pos":850,"y_pos":450,"width":50,"height":50},{"x_pos":550,"y_pos":400,"width":50,"height":50},{"x_pos":500,"y_pos":400,"width":50,"height":50},{"x_pos":500,"y_pos":450,"width":50,"height":50},{"x_pos":550,"y_pos":450,"width":50,"height":50},{"x_pos":850,"y_pos":400,"width":50,"height":50},{"x_pos":900,"y_pos":400,"width":50,"height":50},{"x_pos":50,"y_pos":400,"width":50,"height":50},{"x_pos":100,"y_pos":400,"width":50,"height":50},{"x_pos":150,"y_pos":400,"width":50,"height":50},{"x_pos":200,"y_pos":400,"width":50,"height":50},{"x_pos":350,"y_pos":400,"width":50,"height":50},{"x_pos":400,"y_pos":400,"width":50,"height":50},{"x_pos":550,"y_pos":150,"width":50,"height":50},{"x_pos":850,"y_pos":50,"width":50,"height":50},{"x_pos":850,"y_pos":900,"width":50,"height":50},{"x_pos":900,"y_pos":900,"width":50,"height":50},{"x_pos":950,"y_pos":900,"width":50,"height":50},{"x_pos":950,"y_pos":950,"width":50,"height":50},{"x_pos":900,"y_pos":950,"width":50,"height":50},{"x_pos":850,"y_pos":950,"width":50,"height":50},{"x_pos":650,"y_pos":900,"width":50,"height":50},{"x_pos":650,"y_pos":950,"width":50,"height":50},{"x_pos":600,"y_pos":950,"width":50,"height":50},{"x_pos":600,"y_pos":900,"width":50,"height":50},{"x_pos":550,"y_pos":900,"width":50,"height":50},{"x_pos":550,"y_pos":950,"width":50,"height":50},{"x_pos":500,"y_pos":900,"width":50,"height":50},{"x_pos":500,"y_pos":950,"width":50,"height":50},{"x_pos":500,"y_pos":500,"width":50,"height":50},{"x_pos":550,"y_pos":500,"width":50,"height":50},{"x_pos":850,"y_pos":500,"width":50,"height":50},{"x_pos":900,"y_pos":500,"width":50,"height":50},{"x_pos":950,"y_pos":500,"width":50,"height":50},{"x_pos":950,"y_pos":550,"width":50,"height":50},{"x_pos":950,"y_pos":600,"width":50,"height":50},{"x_pos":950,"y_pos":650,"width":50,"height":50},{"x_pos":950,"y_pos":700,"width":50,"height":50},{"x_pos":950,"y_pos":800,"width":50,"height":50},{"x_pos":950,"y_pos":850,"width":50,"height":50},{"x_pos":950,"y_pos":750,"width":50,"height":50},{"x_pos":500,"y_pos":850,"width":50,"height":50},{"x_pos":500,"y_pos":800,"width":50,"height":50},{"x_pos":500,"y_pos":700,"width":50,"height":50},{"x_pos":500,"y_pos":750,"width":50,"height":50},{"x_pos":550,"y_pos":750,"width":50,"height":50},{"x_pos":600,"y_pos":750,"width":50,"height":50},{"x_pos":650,"y_pos":750,"width":50,"height":50},{"x_pos":650,"y_pos":700,"width":50,"height":50},{"x_pos":650,"y_pos":650,"width":50,"height":50},{"x_pos":700,"y_pos":650,"width":50,"height":50},{"x_pos":750,"y_pos":650,"width":50,"height":50},{"x_pos":0,"y_pos":500,"width":50,"height":50},{"x_pos":50,"y_pos":500,"width":50,"height":50},{"x_pos":100,"y_pos":500,"width":50,"height":50},{"x_pos":0,"y_pos":550,"width":50,"height":50},{"x_pos":0,"y_pos":600,"width":50,"height":50},{"x_pos":0,"y_pos":650,"width":50,"height":50},{"x_pos":0,"y_pos":700,"width":50,"height":50},{"x_pos":0,"y_pos":750,"width":50,"height":50},{"x_pos":0,"y_pos":800,"width":50,"height":50},{"x_pos":0,"y_pos":850,"width":50,"height":50},{"x_pos":0,"y_pos":900,"width":50,"height":50},{"x_pos":150,"y_pos":500,"width":50,"height":50},{"x_pos":200,"y_pos":500,"width":50,"height":50},{"x_pos":350,"y_pos":500,"width":50,"height":50},{"x_pos":450,"y_pos":500,"width":50,"height":50},{"x_pos":400,"y_pos":500,"width":50,"height":50},{"x_pos":450,"y_pos":650,"width":50,"height":50},{"x_pos":450,"y_pos":700,"width":50,"height":50},{"x_pos":700,"y_pos":900,"width":50,"height":50},{"x_pos":700,"y_pos":950,"width":50,"height":50},{"x_pos":0,"y_pos":950,"width":50,"height":50},{"x_pos":150,"y_pos":900,"width":50,"height":50},{"x_pos":400,"y_pos":900,"width":50,"height":50},{"x_pos":350,"y_pos":900,"width":50,"height":50},{"x_pos":450,"y_pos":850,"width":50,"height":50},{"x_pos":450,"y_pos":750,"width":50,"height":50},{"x_pos":450,"y_pos":800,"width":50,"height":50},{"x_pos":450,"y_pos":900,"width":50,"height":50},{"x_pos":450,"y_pos":950,"width":50,"height":50},{"x_pos":400,"y_pos":950,"width":50,"height":50},{"x_pos":350,"y_pos":950,"width":50,"height":50},{"x_pos":300,"y_pos":900,"width":50,"height":50},{"x_pos":300,"y_pos":950,"width":50,"height":50},{"x_pos":150,"y_pos":950,"width":50,"height":50},{"x_pos":100,"y_pos":900,"width":50,"height":50},{"x_pos":50,"y_pos":900,"width":50,"height":50},{"x_pos":50,"y_pos":950,"width":50,"height":50},{"x_pos":100,"y_pos":950,"width":50,"height":50},{"x_pos":200,"y_pos":0,"width":50,"height":50},{"x_pos":250,"y_pos":0,"width":50,"height":50},{"x_pos":200,"y_pos":900,"width":50,"height":50},{"x_pos":250,"y_pos":900,"width":50,"height":50},{"x_pos":750,"y_pos":900,"width":50,"height":50},{"x_pos":800,"y_pos":900,"width":50,"height":50},{"x_pos":750,"y_pos":0,"width":50,"height":50},{"x_pos":800,"y_pos":0,"width":50,"height":50},{"x_pos":500,"y_pos":650,"width":50,"height":50},{"x_pos":600,"y_pos":400,"width":50,"height":50},{"x_pos":600,"y_pos":500,"width":50,"height":50},{"x_pos":600,"y_pos":450,"width":50,"height":50},{"x_pos":650,"y_pos":450,"width":50,"height":50},{"x_pos":700,"y_pos":250,"width":50,"height":50},{"x_pos":750,"y_pos":250,"width":50,"height":50},{"x_pos":250,"y_pos":950,"width":50,"height":50},{"x_pos":200,"y_pos":950,"width":50,"height":50},{"x_pos":800,"y_pos":950,"width":50,"height":50},{"x_pos":750,"y_pos":950,"width":50,"height":50},{"x_pos":650,"y_pos":400,"width":50,"height":50},{"x_pos":700,"y_pos":400,"width":50,"height":50},{"x_pos":700,"y_pos":450,"width":50,"height":50},{"x_pos":700,"y_pos":500,"width":50,"height":50},{"x_pos":650,"y_pos":500,"width":50,"height":50},{"x_pos":150,"y_pos":650,"width":50,"height":50},{"x_pos":150,"y_pos":700,"width":50,"height":50},{"x_pos":150,"y_pos":750,"width":50,"height":50},{"x_pos":200,"y_pos":750,"width":50,"height":50},{"x_pos":250,"y_pos":750,"width":50,"height":50},{"x_pos":300,"y_pos":750,"width":50,"height":50}], "pots": [{"x_pos": 244, "y_pos": 300},{"x_pos": 244, "y_pos": 350},{"x_pos": 444, "y_pos": 250},{"x_pos": 444, "y_pos": 200},{"x_pos": 700, "y_pos": 100},{"x_pos": 900, "y_pos": 150},{"x_pos": 800, "y_pos": 300}, {"x_pos": 220, "y_pos": 680}, {"x_pos": 380, "y_pos": 680}, {"x_pos": 830, "y_pos": 680}, {"x_pos": 890, "y_pos": 800}]
+		}
+		
+		this.model = new Model(map);
+		this.view = new View(this.model);
+		this.controller = new Controller(this.model, this.view);
+	}
+
+	onTimer()
+	{
+		this.controller.update();
+		this.model.update();
+		this.view.update();
+	}
+}
+
+let game = new Game();
+let timer = setInterval(function() { game.onTimer(); }, 40);
+
+</script>
+
+</body>
